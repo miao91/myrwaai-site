@@ -6,7 +6,8 @@
  */
 
 import { build as esbuild } from 'esbuild'
-import { stylePlugin } from 'esbuild-style-plugin'
+import stylePluginPkg from 'esbuild-style-plugin'
+const { stylePlugin } = stylePluginPkg
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import http from 'node:http'
