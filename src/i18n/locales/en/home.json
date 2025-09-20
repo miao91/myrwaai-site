@@ -1,0 +1,41 @@
+{
+  "hero": {
+    "title": "Navigate Global Crypto Regulations with Confidence",
+    "subtitle": "Stay compliant across jurisdictions with real-time policy tracking, interactive checklists, and expert insights",
+    "cta": {
+      "primary": "Join Waitlist",
+      "secondary": "Explore Policies"
+    }
+  },
+  "features": {
+    "title": "Everything You Need for Crypto Compliance",
+    "subtitle": "Comprehensive tools and insights to keep your business compliant",
+    "items": {
+      "policyTracking": {
+        "title": "Real-time Policy Tracking",
+        "description": "Monitor regulatory changes across 50+ jurisdictions with instant updates and detailed analysis"
+      },
+      "complianceChecklist": {
+        "title": "Interactive Compliance Checklists",
+        "description": "Generate customized compliance requirements based on your business type and location"
+      },
+      "expertInsights": {
+        "title": "Expert Insights",
+        "description": "Access professional analysis and practical guidance from regulatory experts"
+      }
+    }
+  },
+  "waitlist": {
+    "title": "Join Our Waitlist",
+    "description": "Be the first to know when we launch and get early access to premium features",
+    "form": {
+      "email": "Email Address",
+      "name": "Full Name",
+      "role": "Your Role",
+      "region": "Primary Region",
+      "interests": "Areas of Interest",
+      "submit": "Join Waitlist",
+      "success": "Thank you for joining our waitlist!"
+    }
+  }
+}

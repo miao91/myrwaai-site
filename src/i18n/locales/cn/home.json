@@ -1,0 +1,41 @@
+{
+  "hero": {
+    "title": "轻松应对全球加密货币监管",
+    "subtitle": "通过实时政策追踪、互动清单和专家洞察，确保跨司法管辖区合规",
+    "cta": {
+      "primary": "加入候补名单",
+      "secondary": "探索政策"
+    }
+  },
+  "features": {
+    "title": "加密货币合规所需的一切",
+    "subtitle": "全面的工具和洞察，确保您的业务合规",
+    "items": {
+      "policyTracking": {
+        "title": "实时政策追踪",
+        "description": "监控50多个司法管辖区的监管变化，获得即时更新和详细分析"
+      },
+      "complianceChecklist": {
+        "title": "互动合规清单",
+        "description": "根据您的业务类型和位置生成定制化合规要求"
+      },
+      "expertInsights": {
+        "title": "专家洞察",
+        "description": "获取监管专家的专业分析和实用指导"
+      }
+    }
+  },
+  "waitlist": {
+    "title": "加入我们的候补名单",
+    "description": "第一时间了解我们的发布动态，抢先体验高级功能",
+    "form": {
+      "email": "邮箱地址",
+      "name": "姓名",
+      "role": "您的角色",
+      "region": "主要地区",
+      "interests": "关注领域",
+      "submit": "加入候补名单",
+      "success": "感谢您加入我们的候补名单！"
+    }
+  }
+}

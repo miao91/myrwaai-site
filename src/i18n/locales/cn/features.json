@@ -1,0 +1,38 @@
+{
+  "policyTracking": {
+    "title": "政策追踪",
+    "filters": {
+      "region": "地区",
+      "topic": "主题",
+      "timeRange": "时间范围",
+      "search": "搜索政策...",
+      "clear": "清除筛选"
+    },
+    "card": {
+      "readTime": "分钟阅读",
+      "source": "来源",
+      "tags": "标签",
+      "important": "重要",
+      "readMore": "阅读更多"
+    }
+  },
+  "complianceChecklist": {
+    "title": "合规清单生成器",
+    "steps": {
+      "region": "选择地区",
+      "assetType": "资产类型",
+      "scenario": "业务场景",
+      "result": "您的清单"
+    },
+    "actions": {
+      "copy": "复制到剪贴板",
+      "export": "导出为Markdown",
+      "save": "保存草稿"
+    }
+  },
+  "favorites": {
+    "title": "收藏",
+    "empty": "还没有收藏",
+    "export": "导出收藏"
+  }
+}

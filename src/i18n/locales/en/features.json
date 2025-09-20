@@ -1,0 +1,38 @@
+{
+  "policyTracking": {
+    "title": "Policy Tracking",
+    "filters": {
+      "region": "Region",
+      "topic": "Topic",
+      "timeRange": "Time Range",
+      "search": "Search policies...",
+      "clear": "Clear Filters"
+    },
+    "card": {
+      "readTime": "min read",
+      "source": "Source",
+      "tags": "Tags",
+      "important": "Important",
+      "readMore": "Read More"
+    }
+  },
+  "complianceChecklist": {
+    "title": "Compliance Checklist Generator",
+    "steps": {
+      "region": "Select Region",
+      "assetType": "Asset Type",
+      "scenario": "Business Scenario",
+      "result": "Your Checklist"
+    },
+    "actions": {
+      "copy": "Copy to Clipboard",
+      "export": "Export as Markdown",
+      "save": "Save Draft"
+    }
+  },
+  "favorites": {
+    "title": "Favorites",
+    "empty": "No favorites yet",
+    "export": "Export Favorites"
+  }
+}

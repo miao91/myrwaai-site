@@ -1,0 +1,32 @@
+{
+  "language": {
+    "cn": "中文",
+    "en": "English"
+  },
+  "nav": {
+    "home": "Home",
+    "policies": "Policies",
+    "compliance": "Compliance",
+    "favorites": "Favorites",
+    "about": "About"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "copy": "Copy",
+    "close": "Close"
+  },
+  "messages": {
+    "loading": "Loading...",
+    "error": "Error occurred",
+    "success": "Success!",
+    "noData": "No data available",
+    "confirmDelete": "Are you sure you want to delete?"
+  }
+}

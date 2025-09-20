@@ -1,0 +1,32 @@
+{
+  "language": {
+    "cn": "中文",
+    "en": "English"
+  },
+  "nav": {
+    "home": "首页",
+    "policies": "政策",
+    "compliance": "合规",
+    "favorites": "收藏",
+    "about": "关于"
+  },
+  "actions": {
+    "save": "保存",
+    "cancel": "取消",
+    "submit": "提交",
+    "edit": "编辑",
+    "delete": "删除",
+    "search": "搜索",
+    "filter": "筛选",
+    "export": "导出",
+    "copy": "复制",
+    "close": "关闭"
+  },
+  "messages": {
+    "loading": "加载中...",
+    "error": "出现错误",
+    "success": "成功！",
+    "noData": "暂无数据",
+    "confirmDelete": "确定要删除吗？"
+  }
+}
