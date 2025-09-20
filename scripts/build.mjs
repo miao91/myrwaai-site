@@ -1,172 +1,221 @@
 /**
  * scripts/build.mjs
- * 使用 esbuild 打包 React + TypeScript，并通过 esbuild-style-plugin 调用 PostCSS + Tailwind。
- * - dev: 运行 `node scripts/build.mjs`（watch + 本地静态服务）
- * - prod: 运行 `node scripts/build.mjs --production`（一次性构建）
+ * Cross-environment build script without esbuild-style-plugin.
+ *
+ * - Bundles TS/TSX with esbuild
+ * - Processes Tailwind CSS via PostCSS (tailwindcss + autoprefixer)
+ * - Copies index.html to dist/
+ *
+ * Usage:
+ *   Dev:  node scripts/build.mjs
+ *   Prod: node scripts/build.mjs --production
  */
 
-import { build as esbuild } from 'esbuild'
-import stylePluginPkg from 'esbuild-style-plugin'
-const { stylePlugin } = stylePluginPkg
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import http from 'node:http'
-import url from 'node:url'
 import { fileURLToPath } from 'node:url'
-import { rimraf } from 'rimraf'
+import * as esbuild from 'esbuild'
+import postcss from 'postcss'
+import tailwindcss from 'tailwindcss'
+import autoprefixer from 'autoprefixer'
 
-/** 当前脚本所在目录 */
+/** Resolve repo root path */
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-
-/** 项目根目录（scripts/ 的上级） */
 const ROOT = path.resolve(__dirname, '..')
+const DIST = path.join(ROOT, 'dist')
+const ASSETS = path.join(DIST, 'assets')
 
-/** 解析是否生产模式 */
+/** Flags */
 const isProd = process.argv.includes('--production')
 
 /**
- * cleanDist
- * 清理 dist 目录
+ * ensureDir
+ * Ensure a directory exists.
  */
-async function cleanDist() {
-  await rimraf(path.join(ROOT, 'dist'))
+async function ensureDir(dir) {
+  await fs.mkdir(dir, { recursive: true })
 }
 
 /**
- * copyIndexHtml
- * 将根目录的 index.html 复制到 dist 根目录
+ * emptyDir
+ * Remove a directory recursively (ignore errors) and recreate it.
  */
-async function copyIndexHtml() {
-  const src = path.join(ROOT, 'index.html')
-  const destDir = path.join(ROOT, 'dist')
-  const dest = path.join(destDir, 'index.html')
-  await fs.mkdir(destDir, { recursive: true })
+async function emptyDir(dir) {
+  await fs.rm(dir, { recursive: true, force: true })
+  await ensureDir(dir)
+}
+
+/**
+ * copyFile
+ * Copy a file from src to dest, creating parent folders.
+ */
+async function copyFile(src, dest) {
+  await ensureDir(path.dirname(dest))
   await fs.copyFile(src, dest)
 }
 
 /**
- * serveDist
- * 启动一个超轻量的静态服务器以预览 dist 内容（仅 dev 使用）
+ * buildCSS
+ * Use PostCSS to transform src/shadcn.css with Tailwind + Autoprefixer.
  */
-function serveDist({ port = 5173 } = {}) {
-  const distDir = path.join(ROOT, 'dist')
+async function buildCSS() {
+  const inFile = path.join(ROOT, 'src', 'shadcn.css')
+  const outFile = path.join(ASSETS, 'app.css')
 
-  /** 简易类型映射 */
-  const mime = {
-    '.html': 'text/html; charset=utf-8',
-    '.js': 'application/javascript; charset=utf-8',
-    '.css': 'text/css; charset=utf-8',
-    '.json': 'application/json; charset=utf-8',
-    '.svg': 'image/svg+xml',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.gif': 'image/gif',
-    '.woff2': 'font/woff2',
+  const css = await fs.readFile(inFile, 'utf8')
+  const result = await postcss([tailwindcss(), autoprefixer()]).process(css, {
+    from: inFile,
+    to: outFile,
+    map: isProd ? false : { inline: false },
+    // Tailwind will auto-load tailwind.config.cjs from project root
+  })
+
+  await ensureDir(path.dirname(outFile))
+  await fs.writeFile(outFile, result.css, 'utf8')
+  if (result.map) {
+    await fs.writeFile(`${outFile}.map`, result.map.toString(), 'utf8')
   }
-
-  const server = http.createServer(async (req, res) => {
-    try {
-      const parsed = url.parse(req.url || '/')
-      let pathname = parsed.pathname || '/'
-      // 统一用 dist 目录
-      let filePath = path.join(distDir, pathname)
-
-      // 如果请求的是目录，则返回 index.html
-      const stat = await fs
-        .stat(filePath)
-        .catch(() => null)
-
-      if (!stat || (stat && stat.isDirectory())) {
-        filePath = path.join(distDir, 'index.html')
-      }
-
-      const ext = path.extname(filePath).toLowerCase()
-      const type = mime[ext] || 'application/octet-stream'
-      const content = await fs.readFile(filePath)
-      res.writeHead(200, { 'Content-Type': type })
-      res.end(content)
-    } catch (err) {
-      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' })
-      res.end('Not Found')
-    }
-  })
-
-  server.listen(port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Dev server running: http://localhost:${port}`)
-  })
 }
 
 /**
- * build
- * 执行 esbuild 构建，产出到 dist/assets
+ * esbuildOptions
+ * Shared esbuild build options for both dev and prod.
  */
-async function build() {
-  await cleanDist()
-
-  const result = await esbuild({
+function esbuildOptions() {
+  return {
     entryPoints: [path.join(ROOT, 'src', 'main.tsx')],
+    outfile: path.join(ASSETS, 'app.js'),
     bundle: true,
     format: 'esm',
-    splitting: true,
-    sourcemap: !isProd,
+    target: ['es2020'],
+    platform: 'browser',
+    jsx: 'automatic',
+    sourcemap: isProd ? false : 'external',
     minify: isProd,
-    target: ['es2018'],
-    outdir: path.join(ROOT, 'dist', 'assets'),
-    entryNames: 'app',
-    chunkNames: 'chunks/[name]-[hash]',
-    assetNames: 'assets/[name]-[hash]',
+    legalComments: 'none',
     define: {
       'process.env.NODE_ENV': JSON.stringify(isProd ? 'production' : 'development'),
     },
-    plugins: [
-      stylePlugin({
-        // 通过 PostCSS 执行 tailwindcss 与 autoprefixer
-        postcss: {
-          plugins: [
-            (await import('tailwindcss')).default(),
-            (await import('autoprefixer')).default(),
-          ],
-        },
-      }),
-    ],
-    // 保持目录结构整洁
-    loader: {
-      '.png': 'file',
-      '.jpg': 'file',
-      '.jpeg': 'file',
-      '.svg': 'file',
-      '.woff2': 'file',
-    },
-    logLevel: 'info',
-    // dev 模式开启 watch，用于本地预览
-    watch: isProd ? false : {
-      onRebuild(error) {
-        if (error) {
-          // eslint-disable-next-line no-console
-          console.error('Rebuild failed:', error)
-        } else {
-          // eslint-disable-next-line no-console
-          console.log('Rebuilt successfully')
-          copyIndexHtml().catch((e) => console.error(e))
-        }
-      },
-    },
-  })
-
-  await copyIndexHtml()
-
-  if (!isProd) {
-    serveDist({ port: 5173 })
   }
-
-  return result
 }
 
-build().catch((err) => {
-  // eslint-disable-next-line no-console
-  console.error(err)
+/**
+ * buildJS
+ * One-off JS build for production pipeline.
+ */
+async function buildJS() {
+  await ensureDir(ASSETS)
+  await esbuild.build(esbuildOptions())
+}
+
+/**
+ * copyHTML
+ * Copy index.html to dist root as-is.
+ */
+async function copyHTML() {
+  const src = path.join(ROOT, 'index.html')
+  const dest = path.join(DIST, 'index.html')
+  await copyFile(src, dest)
+}
+
+/**
+ * devServer
+ * Start a lightweight dev workflow with esbuild watch + static serve.
+ * - Uses esbuild's context API to serve dist/ on port 5173.
+ * - Rebuilds CSS on start; watches CSS-related files with a simple throttle.
+ */
+async function devServer() {
+  await emptyDir(DIST)
+  await buildCSS()
+
+  const ctx = await esbuild.context(esbuildOptions())
+  await ctx.watch()
+  await copyHTML()
+
+  // naive CSS watcher: rebuild on any css/tailwind config change
+  const watchTargets = [
+    path.join(ROOT, 'src'),
+    path.join(ROOT, 'tailwind.config.cjs'),
+    path.join(ROOT, 'postcss.config.cjs'),
+  ]
+
+  let cssPending = false
+  const scheduleCssBuild = () => {
+    if (cssPending) return
+    cssPending = true
+    setTimeout(async () => {
+      try {
+        await buildCSS()
+        // keep index.html fresh in case of class changes in examples
+        await copyHTML()
+        console.log('[dev] CSS rebuilt')
+      } catch (e) {
+        console.error('[dev] CSS build error:', e)
+      } finally {
+        cssPending = false
+      }
+    }, 50)
+  }
+
+  // Node's fs.watch has platform differences; we keep it simple
+  const { watch } = await import('node:fs')
+  for (const target of watchTargets) {
+    try {
+      watch(target, { recursive: true }, (event, filename) => {
+        if (!filename) return
+        if (
+          filename.endsWith('.css') ||
+          filename.endsWith('.tsx') ||
+          filename.endsWith('.ts') ||
+          filename.includes('tailwind.config') ||
+          filename.includes('postcss.config')
+        ) {
+          scheduleCssBuild()
+        }
+      })
+    } catch {
+      // ignore watcher errors in environments not supporting recursive watch
+    }
+  }
+
+  const { host, port } = await ctx.serve({
+    port: 5173,
+    servedir: DIST,
+  })
+
+  console.log(`\nDev server running at: http://${host}:${port}\n`)
+  console.log('Press Ctrl+C to stop.')
+}
+
+/**
+ * buildProd
+ * Full production build for Cloudflare Pages (no server, no watch).
+ * Steps:
+ *  1) Clean dist
+ *  2) Build CSS
+ *  3) Build JS
+ *  4) Copy index.html
+ */
+async function buildProd() {
+  console.log('[build] production start')
+  await emptyDir(DIST)
+  await Promise.all([buildCSS(), buildJS()])
+  await copyHTML()
+  console.log('[build] production done -> dist/')
+}
+
+/**
+ * Main
+ * Decide mode by argv and run.
+ */
+try {
+  if (isProd) {
+    await buildProd()
+  } else {
+    await devServer()
+  }
+} catch (err) {
+  console.error('[build] failed:', err)
   process.exit(1)
-})
+}
